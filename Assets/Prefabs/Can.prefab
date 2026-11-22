@@ -12,6 +12,10 @@ GameObject:
   - component: {fileID: 8349649054201121444}
   - component: {fileID: 8812011891745903192}
   - component: {fileID: 2924987058829761319}
+  - component: {fileID: 4324906536708590261}
+  - component: {fileID: 3707036793784265986}
+  - component: {fileID: 3133595820037747059}
+  - component: {fileID: 1872403313416850084}
   m_Layer: 0
   m_Name: Can
   m_TagString: Can
@@ -113,3 +117,67 @@ MeshCollider:
   m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!54 &4324906536708590261
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5727446657182320218}
+  serializedVersion: 5
+  m_Mass: 0.35
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 1
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 3
+--- !u!114 &3707036793784265986
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5727446657182320218}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33066e675cd14cabad0673211816ce79, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CanInteraction
+--- !u!114 &3133595820037747059
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5727446657182320218}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fa25c810cff3ef4409e98ea8d673eb59, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CanPhysics
+--- !u!114 &1872403313416850084
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5727446657182320218}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: de9b1327fd5502a45a8036dd1684952e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CanRotation
+  degreesPerScreenWidth: 360
