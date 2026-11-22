@@ -1,0 +1,3 @@
+-keep class com.zappar.zcv.** { *; }
+-keepclassmembers class com.zappar.zcv.** { *; }
+-dontwarn com.zappar.zcv.**
