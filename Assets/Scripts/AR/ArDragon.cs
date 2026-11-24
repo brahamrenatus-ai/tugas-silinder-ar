@@ -21,12 +21,22 @@ public class ArDragon : MonoBehaviour
     [SerializeField] float fireFrom = 0.18f;
     [SerializeField] float fireUntil = 1.15f;
 
+    // How far and how hard it moves while idle, and how often it snaps at the viewer.
+    [SerializeField, Range(0f, 1.3f)] float liveliness = 1f;
+    [SerializeField] float snapEvery = 4f;
+    [SerializeField] float snapSeconds = 0.8f;
+
+    // While the can lies on its side: how far it goes around the can, and how high it lifts its neck.
+    [SerializeField] float leanTurn = 100f;
+    [SerializeField] float leanLift = 0.018f;
+
     const int Rings = 156;
     const int Sides = 14;
     const int FinEvery = 2;
     const int Fins = (Rings - 12) / FinEvery;
     const int Table = 300;
     const float TileLength = 0.01225f;
+    const float Crawl = 0.07f;      // share of the route it slides back and forth along
 
     // Spiral: degrees around the can (0 is towards the viewer, + is to the right), radius, height.
     static readonly Vector3[] Route =
@@ -43,6 +53,9 @@ public class ArDragon : MonoBehaviour
     // Where each leg sits on the spiral, in the same degrees, and on which side of the body.
     static readonly float[] LegDegrees = { -748f, -702f, -392f, -340f };
     static readonly float[] LegSide = { 1f, -1f, 1f, -1f };
+
+    static readonly Vector3 Mouth = new Vector3(0f, -0.0045f, 0.024f);
+    static readonly Vector3 Ahead = new Vector3(0f, -0.10f, 1f);
 
     readonly Vector3[] route = new Vector3[Table];
     readonly Vector3[] center = new Vector3[Rings];
@@ -61,7 +74,12 @@ public class ArDragon : MonoBehaviour
     float hiddenAt = float.NegativeInfinity;
     float roarTime = float.PositiveInfinity;
     float flameDebt, emberDebt;
+    float snapTime, nextSnap;
     float yaw;
+    Vector2 lean = Vector2.up;
+    float lying;                    // 0 upright, 1 on its side or seen from an end
+    Vector3 level = Vector3.up;     // up on the screen, in the axes of the dragon
+    Vector3 viewer = Vector3.back;
     bool aimed;
 
     public bool Roaring => roarTime < roarSeconds;
@@ -80,6 +98,8 @@ public class ArDragon : MonoBehaviour
         if (Time.time - hiddenAt > replayAfter)
             shownFor = 0f;
         roarTime = float.PositiveInfinity;
+        snapTime = float.PositiveInfinity;
+        nextSnap = appearDelay + appearSeconds + 1f;
         aimed = false;
     }
 
@@ -111,6 +131,14 @@ public class ArDragon : MonoBehaviour
         float t = Mathf.Clamp01((shownFor - appearDelay) / appearSeconds);
         grown = 1f - (1f - t) * (1f - t);
 
+        snapTime += Time.deltaTime;
+        nextSnap -= Time.deltaTime;
+        if (nextSnap < 0f && grown >= 1f && !Roaring)
+        {
+            snapTime = 0f;
+            nextSnap = snapEvery * Random.Range(0.7f, 1.4f);
+        }
+
         FaceCamera();
         ShapeBody();
         WriteMesh();
@@ -129,6 +157,26 @@ public class ArDragon : MonoBehaviour
         return Mathf.Min(rise, fall);
     }
 
+    // Below 0 while it draws back, 1 when it snaps forward, 0 otherwise.
+    float SnapAmount()
+    {
+        float x = snapTime / snapSeconds;
+        if (x >= 1f)
+            return 0f;
+        if (x < 0.3f)
+            return -0.35f * Mathf.Sin(Mathf.PI * x / 0.3f) * (1f - RoarAmount());
+
+        float y = (x - 0.3f) / 0.7f;
+        return Mathf.Min(Mathf.SmoothStep(0f, 1f, y / 0.25f), Mathf.SmoothStep(0f, 1f, (1f - y) / 0.6f))
+            * (1f - RoarAmount());
+    }
+
+    // Smooth noise between -1 and 1.
+    static float Wander(float time, float seed)
+    {
+        return Mathf.Clamp(2.4f * (Mathf.PerlinNoise(time, seed) - 0.5f), -1f, 1f);
+    }
+
     void FaceCamera()
     {
         Camera cam = Camera.main;
@@ -140,37 +188,62 @@ public class ArDragon : MonoBehaviour
         if (eye.x * eye.x + eye.z * eye.z < 1e-8f)
             return;
 
-        float wanted = Mathf.Atan2(-eye.x, -eye.z) * Mathf.Rad2Deg;
+        // Lying with the top to the left, the head would hang under the can, so it goes around.
+        Vector2 now = ArTilt.Lean(pivot, cam);
+        lean = aimed ? Vector2.Lerp(lean, now, 1f - Mathf.Exp(-9f * Time.deltaTime)) : now;
+        float wanted = Mathf.Atan2(-eye.x, -eye.z) * Mathf.Rad2Deg - leanTurn * ArTilt.Side(-lean.x);
+
+        // Seen from an end, it comes out at the upper left instead.
+        float end = ArTilt.EndOn(pivot, cam);
+        if (end != 0f)
+        {
+            Vector3 top = pivot.InverseTransformDirection(cam.transform.up);
+            float upper = Mathf.Atan2(top.x, -top.z) * Mathf.Rad2Deg;
+            wanted = Mathf.LerpAngle(wanted, -(upper + 75f * Mathf.Sign(end) - Route[Route.Length - 1].x), Mathf.Abs(end));
+        }
+        lying = Mathf.Max(ArTilt.Side(Mathf.Abs(lean.x)), Mathf.Abs(end));
         yaw = aimed ? Mathf.LerpAngle(yaw, wanted, 1f - Mathf.Exp(-7f * Time.deltaTime)) : wanted;
         aimed = true;
         transform.localRotation = Quaternion.Euler(0f, yaw, 0f);
+        level = transform.InverseTransformDirection(ArTilt.Up(pivot, cam));
+        viewer = transform.InverseTransformPoint(cam.transform.position);
     }
 
     void ShapeBody()
     {
         float time = Time.time;
         float roar = RoarAmount();
+        float snap = SnapAmount();
+        float calm = liveliness * (1f - roar);
+        Vector3 lift = level * (leanLift * lying);
+
+        // It crawls along its own spiral, and rushes to the front to snap or roar.
+        float crawl = Crawl * (0.5f + 0.3f * Mathf.Sin(time * 1.3f) + 0.2f * Mathf.Sin(time * 2.2f + 1f))
+            * Mathf.Min(calm, 1f) * (1f - 0.7f * Mathf.Max(snap, 0f));
+        float turn = 9f * Mathf.Sin(time * 0.85f) + 4f * Mathf.Sin(time * 1.9f + 1f);
 
         for (int i = 0; i < Rings; i++)
         {
             float u = i / (Rings - 1f);
-            float p = u - (1f - grown);
+            float p = Crawl + (1f - Crawl) * u - (1f - grown) - crawl;
             place[i] = p;
             Vector3 c = Along(p);
 
             float neck = Mathf.SmoothStep(0f, 1f, (p - 0.86f) / 0.14f);
-            float tailEnd = Mathf.SmoothStep(0f, 1f, (0.09f - p) / 0.09f);
-            float wave = p * 26f - time * 2.1f;
-            c.x += 3.5f * Mathf.Sin(time * 0.6f) + 5f * neck * Mathf.Sin(time * 0.9f) - 3f * neck * roar
-                + 7f * tailEnd * Mathf.Sin(time * 1.7f);
-            c.y += 0.0008f * (1f + Mathf.Sin(wave * 0.7f)) + 0.002f * neck * Mathf.Sin(time * 1.1f);
-            c.z += 0.0020f * Mathf.Sin(wave) + 0.0025f * neck * Mathf.Sin(time * 1.5f) + 0.009f * neck * roar
-                + 0.004f * tailEnd * Mathf.Sin(time * 2.3f);
+            float tailEnd = Mathf.SmoothStep(0f, 1f, (0.16f - p) / 0.16f);
+            float wave = p * 34f - time * 4.4f;
+            c.x += calm * (turn * (1f - 0.7f * neck) + 8f * neck * Mathf.Sin(time * 1.4f)) - 3f * neck * roar
+                + 15f * liveliness * tailEnd * Mathf.Sin(time * 3.1f);
+            c.y += 0.0015f * liveliness * (1f + Mathf.Sin(wave * 0.7f))
+                + neck * (0.004f * calm * Mathf.Sin(time * 1.7f) + 0.013f * snap);
+            c.z += 0.0042f * liveliness * (1f - 0.6f * neck) * Mathf.Sin(wave)
+                + neck * (calm * (0.0045f * Mathf.Sin(time * 2.1f) + 0.002f * Mathf.Sin(time * 3.7f)) + 0.009f * roar + 0.003f * snap)
+                + 0.006f * liveliness * tailEnd * Mathf.Sin(time * 3.7f);
 
-            center[i] = Point(c);
+            center[i] = Point(c) + lift * (neck * neck);
             radius[i] = p < 0f ? 0f : Thickness(u) * Mathf.Clamp01(p * 40f)
-                * (1f + 0.03f * Mathf.Sin(time * 1.8f + u * 5f));
-            back[i] = Vector3.Lerp(Point(new Vector3(c.x, 0.6f, 0.8f)), Vector3.up, neck);
+                * (1f + 0.045f * Mathf.Sin(time * 2.8f + u * 5f));
+            back[i] = Vector3.Lerp(Point(new Vector3(c.x, 0.6f, 0.8f)), level, neck);
         }
 
         for (int i = 0; i < Rings; i++)
@@ -236,18 +309,22 @@ public class ArDragon : MonoBehaviour
     {
         float time = Time.time;
         float roar = RoarAmount();
+        float snap = SnapAmount();
+        float calm = liveliness * (1f - roar);
         int last = Rings - 1;
 
         // Looks up and towards the side of the screen while it breathes fire.
-        Quaternion rest = Quaternion.LookRotation(forward[last], Vector3.up);
-        Quaternion look = Quaternion.Euler(4f * Mathf.Sin(time * 1.3f) - 42f * roar,
-            9f * Mathf.Sin(time * 0.55f) * (1f - roar) + 20f * roar,
-            4f * Mathf.Sin(time * 0.8f) + 2.5f * roar * Mathf.Sin(time * 55f));
+        Vector3 gaze = Vector3.Slerp(forward[last], (viewer - center[last]).normalized, 0.6f * lying);
+        Quaternion rest = Quaternion.LookRotation(gaze, level);
+        float away = 20f * (1f - 2f * ArTilt.Side(lean.x));
+        Quaternion look = Quaternion.Euler(calm * 13f * Wander(time * 0.9f, 2.3f) - 10f * snap - 42f * roar,
+            calm * 26f * Wander(time * 0.7f, 7.9f) * (1f - Mathf.Max(snap, 0f)) + away * roar,
+            calm * 12f * Wander(time * 0.8f, 4.1f) + 2.5f * roar * Mathf.Sin(time * 55f));
         head.localPosition = center[last] - forward[last] * 0.001f;
         head.localRotation = rest * look;
         head.localScale = Vector3.one * Mathf.Clamp01(grown * 12f);
 
-        JawDegrees = 3.5f + 2.5f * Mathf.Sin(time * 1.8f) + roar * (31f + 3f * Mathf.Sin(time * 40f));
+        JawDegrees = 3.5f + 3f * Mathf.Sin(time * 2.8f) + 27f * Mathf.Max(snap, 0f) + roar * (31f + 3f * Mathf.Sin(time * 40f));
         jaw.localRotation = Quaternion.Euler(JawDegrees, 0f, 0f);
 
         tail.localPosition = center[0];
@@ -261,7 +338,7 @@ public class ArDragon : MonoBehaviour
             float f = at - i;
             Vector3 ahead = Vector3.Slerp(forward[i], forward[i + 1], f);
             Vector3 along = Vector3.ProjectOnPlane(Vector3.up, ahead).normalized * LegSide[k];
-            float swing = 5f * Mathf.Sin(time * 1.4f + k * 1.9f);
+            float swing = 15f * liveliness * Mathf.Sin(time * 4.4f + k * 1.9f);
             legs[k].localPosition = Vector3.Lerp(center[i], center[i + 1], f);
             legs[k].localRotation = Quaternion.LookRotation(ahead, along) * Quaternion.Euler(swing, 0f, 0f);
 
@@ -275,13 +352,17 @@ public class ArDragon : MonoBehaviour
     {
         if (!Roaring || roarTime < fireFrom || roarTime > fireUntil)
         {
-            flameDebt = emberDebt = 0f;
+            flameDebt = 0f;
+            if (SnapAmount() > 0.6f)
+                Spark(30f);
+            else
+                emberDebt = 0f;
             return;
         }
 
         float scale = transform.lossyScale.x;
-        Vector3 mouth = head.TransformPoint(new Vector3(0f, -0.0045f, 0.024f));
-        Vector3 ahead = head.TransformDirection(new Vector3(0f, -0.10f, 1f)).normalized;
+        Vector3 mouth = head.TransformPoint(Mouth);
+        Vector3 ahead = head.TransformDirection(Ahead).normalized;
 
         flameDebt += 95f * Time.deltaTime;
         for (; flameDebt >= 1f; flameDebt -= 1f)
@@ -289,9 +370,16 @@ public class ArDragon : MonoBehaviour
             Emit(flames, mouth, ahead, 0.21f, 0.15f, 0.013f, 0.021f, scale);
             Emit(flameCore, mouth, ahead, 0.18f, 0.07f, 0.006f, 0.011f, scale);
         }
-        emberDebt += 45f * Time.deltaTime;
+        Spark(45f);
+    }
+
+    void Spark(float perSecond)
+    {
+        Vector3 mouth = head.TransformPoint(Mouth);
+        Vector3 ahead = head.TransformDirection(Ahead).normalized;
+        emberDebt += perSecond * Time.deltaTime;
         for (; emberDebt >= 1f; emberDebt -= 1f)
-            Emit(embers, mouth, ahead, 0.24f, 0.3f, 0.0012f, 0.0026f, scale);
+            Emit(embers, mouth, ahead, 0.24f, 0.3f, 0.0012f, 0.0026f, transform.lossyScale.x);
     }
 
     static void Emit(ParticleSystem system, Vector3 at, Vector3 ahead, float speed, float spread,
@@ -354,7 +442,7 @@ public class ArDragon : MonoBehaviour
             int i = 0;
             while (i < Table - 1 && route[i].x < LegDegrees[k])
                 i++;
-            legAt[k] = i / (Table - 1f);
+            legAt[k] = (i / (Table - 1f) - Crawl * 0.5f) / (1f - Crawl);
         }
     }
 
