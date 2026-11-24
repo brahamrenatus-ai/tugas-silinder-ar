@@ -250,6 +250,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 33066e675cd14cabad0673211816ce79, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CanInteraction
+  holdSeconds: 0.25
+  liftHeight: 0.12
+  followSpeed: 14
+  minPosition: {x: -0.45, y: 1.01, z: -0.25}
+  maxPosition: {x: 0.45, y: 1.5, z: 0.25}
 --- !u!114 &3133595820037747059
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -302,4 +307,3 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da2f88d84962c00419de2a3acefbeebb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CanHaptics
-  tapMaxSeconds: 0.2

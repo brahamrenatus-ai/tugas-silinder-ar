@@ -855,7 +855,7 @@ MonoBehaviour:
   grabMs: 40
   releaseMs: 40
   collisionMs: 120
-  cooldown: 0.1
+  cooldown: 0.06
 --- !u!4 &605496441
 Transform:
   m_ObjectHideFlags: 0
