@@ -16,6 +16,7 @@ GameObject:
   - component: {fileID: 3707036793784265986}
   - component: {fileID: 3133595820037747059}
   - component: {fileID: 1872403313416850084}
+  - component: {fileID: 4136488943167487345}
   m_Layer: 0
   m_Name: Can
   m_TagString: Can
@@ -181,3 +182,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CanRotation
   degreesPerScreenWidth: 360
+--- !u!114 &4136488943167487345
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5727446657182320218}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a291fd71ab78230498e209f79b910456, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CanCollision
+  tableName: Table
+  minImpactSpeed: 0.5
+  respawnBelowY: 0.2
