@@ -5321,6 +5321,7 @@ GameObject:
   - component: {fileID: 4854907870506471973}
   - component: {fileID: 3246240113576999370}
   - component: {fileID: 6522661289230666989}
+  - component: {fileID: 5120943377160284411}
   m_Layer: 0
   m_Name: Bubbles
   m_TagString: Untagged
@@ -7639,6 +7640,20 @@ ParticleSystemRenderer:
   m_MeshWeighting1: 1
   m_MeshWeighting2: 1
   m_MeshWeighting3: 1
+--- !u!114 &5120943377160284411
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3600709034535381911}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b77b3496540640409cc07bb299c1a87c, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::ArBubbles
+  halfHeight: 0.055
+  radius: 0.033
 --- !u!1 &3641900613677127985
 GameObject:
   m_ObjectHideFlags: 0
