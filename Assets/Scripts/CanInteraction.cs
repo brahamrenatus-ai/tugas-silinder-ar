@@ -12,7 +12,7 @@ public class CanInteraction : MonoBehaviour
     private Vector3 grabOffset;
 
     private Color originalColor;
-    private Color grabColor = Color.green;
+    private Color grabColor = new Color(1.5f, 1.45f, 1.1f);
 
     // Dapat dibaca oleh script Member 3 nantinya
     public bool IsGrabbed => isGrabbed;
