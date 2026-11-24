@@ -5242,6 +5242,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ArBillboard
   offset: {x: 0.0665, y: -0.002, z: -0.036}
+  leanOffset: {x: 0.03, y: -0.084, z: -0.05}
+  swing: 0.03
+  smoothing: 8
 --- !u!114 &4355942504869379722
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5304,6 +5307,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ArBillboard
   offset: {x: 0, y: 0.086, z: 0}
+  leanOffset: {x: 0.022, y: 0.094, z: 0}
+  swing: 0.03
+  smoothing: 8
 --- !u!1 &3600709034535381911
 GameObject:
   m_ObjectHideFlags: 0
@@ -8673,6 +8679,11 @@ MonoBehaviour:
   roarSeconds: 1.5
   fireFrom: 0.18
   fireUntil: 1.15
+  liveliness: 1
+  snapEvery: 4
+  snapSeconds: 0.8
+  leanTurn: 100
+  leanLift: 0.018
 --- !u!82 &6408275360464636075
 AudioSource:
   m_ObjectHideFlags: 0
