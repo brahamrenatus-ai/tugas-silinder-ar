@@ -8,8 +8,17 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/SampleScene.unity
     guid: 99c9720ab356a0642a771bea13969a05
+<<<<<<< Updated upstream
   - enabled: 1
     path: Assets/Scenes/VirtualScene.unity
     guid: f3d7ad673e603924ab08b1a401ee791d
+=======
+  - enabled: 0
+    path: Assets/Scenes/TestScene.unity
+    guid: 818f85f41f62f634f8cd7c059779827a
+  - enabled: 0
+    path: Assets/MerapiAR.unity
+    guid: ad5502fde67a8864eb9026a951b4857f
+>>>>>>> Stashed changes
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
