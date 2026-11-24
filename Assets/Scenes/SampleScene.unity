@@ -1130,6 +1130,7 @@ GameObject:
   - component: {fileID: 1430418190}
   - component: {fileID: 1430418189}
   - component: {fileID: 1430418191}
+  - component: {fileID: 1430418192}
   m_Layer: 0
   m_Name: Zappar Image Tracking Target
   m_TagString: Untagged
@@ -1149,7 +1150,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 53a46277bb2e24858882d73be7e2e0a4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Zappar.UAR::Zappar.ZapparImageTrackingTarget
-  Target: Target_curved.zpt
+  Target: Target_kaleng_curved.zpt
   Orientation: 1
   PreviewImageObject: {fileID: 642886498}
   OnSeenEvent:
@@ -1213,6 +1214,27 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TargetVisibility
   arContent: {fileID: 55707689}
   hideDelay: 0.3
+--- !u!114 &1430418192
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1430418188}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: df6f791fcff242438e123a93929d960c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ArPoseFilter
+  sideCutoff: 2
+  sideBeta: 25
+  depthCutoff: 0.8
+  depthBeta: 5
+  turnCutoff: 0.8
+  turnBeta: 0.08
+  speedCutoff: 1.5
+  snapDegrees: 35
+  snapSide: 0.15
 --- !u!1 &1451211494
 GameObject:
   m_ObjectHideFlags: 0
