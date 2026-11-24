@@ -4,13 +4,9 @@ using UnityEngine;
 [RequireComponent(typeof(CanInteraction), typeof(CanCollision))]
 public class CanHaptics : MonoBehaviour
 {
-    [SerializeField] float tapMaxSeconds = 0.2f;
-
     CanInteraction interaction;
     CanCollision collision;
     bool wasGrabbed;
-    bool grabPlayed;
-    float grabStart;
 
     void Awake()
     {
@@ -20,11 +16,13 @@ public class CanHaptics : MonoBehaviour
 
     void OnEnable()
     {
+        interaction.Tapped += OnTapped;
         collision.TableHit += OnTableHit;
     }
 
     void OnDisable()
     {
+        interaction.Tapped -= OnTapped;
         collision.TableHit -= OnTableHit;
     }
 
@@ -36,24 +34,17 @@ public class CanHaptics : MonoBehaviour
             return;
 
         if (grabbed && !wasGrabbed)
-        {
-            grabStart = Time.time;
-            grabPlayed = false;
-        }
-        else if (grabbed && !grabPlayed && Time.time - grabStart >= tapMaxSeconds)
-        {
-            grabPlayed = true;
             haptics.PlayGrab();
-        }
         else if (!grabbed && wasGrabbed)
-        {
-            if (grabPlayed)
-                haptics.PlayRelease();
-            else
-                haptics.PlayTap();
-        }
+            haptics.PlayRelease();
 
         wasGrabbed = grabbed;
+    }
+
+    void OnTapped()
+    {
+        if (HapticManager.Instance != null)
+            HapticManager.Instance.PlayTap();
     }
 
     void OnTableHit(float speed)

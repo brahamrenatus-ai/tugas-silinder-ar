@@ -1,14 +1,17 @@
 using UnityEngine;
 
 // Grows an object from nothing to its own size, slightly past it and back, each time it is shown.
+// A short loss of tracking does not replay it.
 public class ArAppear : MonoBehaviour
 {
     [SerializeField] float delay;
     [SerializeField] float duration = 0.6f;
     [SerializeField] float overshoot = 1.5f;
+    [SerializeField] float replayAfter = 1.5f;
 
     Vector3 fullScale;
     float elapsed;
+    float hiddenAt = float.NegativeInfinity;
 
     void Awake()
     {
@@ -17,8 +20,14 @@ public class ArAppear : MonoBehaviour
 
     void OnEnable()
     {
-        elapsed = 0f;
+        if (Time.time - hiddenAt > replayAfter)
+            elapsed = 0f;
         Apply();
+    }
+
+    void OnDisable()
+    {
+        hiddenAt = Time.time;
     }
 
     void Update()
