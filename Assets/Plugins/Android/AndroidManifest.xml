@@ -7,6 +7,9 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.HIGH_SAMPLING_RATE_SENSORS" />
 
+    <!-- Izin getar untuk HapticManager -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+
     <application>
         <!-- Activity Utama Unity Player -->
         <activity android:name="com.unity3d.player.UnityPlayerActivity"
